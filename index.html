@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Матрицы: доска</title>
+<style>
+:root{--bg:#f6f5f1;--card:#fff;--tx:#1f2328;--mut:#666;--ac:#2f6fed;--ok:#1a8f4c;--bd:#ddd;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#16181c;--card:#1f2228;--tx:#eee;--mut:#9aa;--ac:#6b9bff;--ok:#3ecf7a;--bd:#343841}}
+:root[data-theme="dark"]{--bg:#16181c;--card:#1f2228;--tx:#eee;--mut:#9aa;--ac:#6b9bff;--ok:#3ecf7a;--bd:#343841}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:clamp(17px,2vw,26px)/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:1250px;margin:0 auto;padding:14px}
+.top{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:space-between}
+#time{font:700 clamp(40px,7vw,80px) ui-monospace,monospace}
+button{font:inherit;padding:.3em .8em;border-radius:12px;border:2px solid var(--bd);background:var(--card);color:var(--tx);cursor:pointer;min-height:48px}
+button.on,button.p{background:var(--ac);color:#fff;border-color:var(--ac)}
+nav{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:18px 22px;margin:10px 0}
+h2{margin:.1em 0 .3em}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%}th,td{border:1px solid var(--bd);padding:6px 10px;text-align:center;font-family:ui-monospace,monospace;white-space:nowrap}
+.mut{color:var(--mut)}.ans{color:var(--ok);font-weight:700}
+.roles{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}.roles div{border:2px dashed var(--bd);border-radius:12px;padding:10px}
+</style></head><body><main>
+<div class="top"><div id="time">35:00</div>
+<div><button id="st" class="p">Старт</button> <button id="rs">Сброс</button> <button id="pl">+5 мин</button></div></div>
+<nav id="nav"></nav>
+<div id="view"></div>
+<script>
+const G={
+1:{A:'[1 4; −2 4]',B:'[−1 1; −3 1]',C:'[1 −3; 1 2]',M:'[−2 4 −3; −1 0 −1]',N:'[4 0; 4 1; −1 3]',c:3,x:'(1, 2)',
+   T1:'[6 2; 6 7]',MN:'[11 −5; −3 −3]',NM:'[−8 16 −12; −9 16 −13; −1 −4 0]',AcE:'[4 4; −2 7]',Ax:'(12, 12)'},
+2:{A:'[−2 −1; −1 −2]',B:'[−1 −3; −3 −1]',C:'[4 −1; 1 1]',M:'[0 1 −2; 3 4 −1]',N:'[3 4; 0 4; 3 2]',c:4,x:'(2, 1)',
+   T1:'[3 6; 8 0]',MN:'[−6 0; 6 26]',NM:'[12 19 −10; 12 16 −4; 6 11 −8]',AcE:'[2 −1; −1 2]',Ax:'(3, 0)'},
+3:{A:'[3 1; 1 −1]',B:'[2 2; −3 0]',C:'[2 −1; −2 −3]',M:'[2 −3 4; 4 2 −3]',N:'[4 −3; 1 0; −1 0]',c:2,x:'(1, −1)',
+   T1:'[2 −5; 9 −5]',MN:'[1 −6; 21 −12]',NM:'[−4 −18 25; 2 −3 4; −2 3 −4]',AcE:'[5 1; 1 1]',Ax:'(4, 0)'},
+4:{A:'[2 2; −1 3]',B:'[3 3; 2 1]',C:'[4 1; 2 −1]',M:'[0 2 1; 1 4 −1]',N:'[3 1; 3 3; 0 3]',c:5,x:'(2, 1)',
+   T1:'[−1 −4; −6 2]',MN:'[6 9; 15 10]',NM:'[1 10 2; 3 18 0; 3 12 −3]',AcE:'[7 2; −1 8]',Ax:'(16, 6)'},
+5:{A:'[0 3; 1 −3]',B:'[−2 2; 2 3]',C:'[3 −2; 4 0]',M:'[1 4 −2; −1 4 −3]',N:'[−3 −1; −1 1; 1 −1]',c:3,x:'(2, 1)',
+   T1:'[9 −2; 0 −15]',MN:'[−9 5; −4 8]',NM:'[−2 −16 9; −2 0 −1; 2 0 1]',AcE:'[3 3; 1 0]',Ax:'(9, 2)'},
+6:{A:'[2 −3; −1 −1]',B:'[2 −1; −2 −3]',C:'[−2 1; −2 −3]',M:'[1 −3 1; 3 4 1]',N:'[2 0; −3 −3; 3 3]',c:4,x:'(1, −2)',
+   T1:'[−4 −2; 2 4]',MN:'[14 12; −3 −9]',NM:'[2 −6 2; −12 −3 −6; 12 3 6]',AcE:'[6 −3; −1 3]',Ax:'(12, −7)'}};
+const tbl=(h,rows)=>'<div class="wrap"><table><tr>'+h.map(x=>'<th>'+x+'</th>').join('')+'</tr>'+rows.map(r=>'<tr>'+r.map(x=>'<td>'+x+'</td>').join('')+'</tr>').join('')+'</table></div>';
+const ks=Object.keys(G);let show=false;
+const V=[
+()=>'<div class="card"><h2>Роли (меняются после каждого задания)</h2><div class="roles"><div><b>Вычислитель</b><br>считает и диктует</div><div><b>Проверяющий</b><br>пересчитывает отдельно</div><div><b>Записывающий</b><br>ведёт тетрадь</div><div><b>Докладчик</b><br>объясняет классу</div></div><p class="mut">Ответ записывается, только когда Проверяющий согласен. Готовы — поднимите руку.</p></div>',
+()=>'<div class="card"><h2>Задание 1 · 8–10 мин</h2><p>Найдите <b>2A − 3B + C</b> (три матрицы, порядок действий важен).</p>'+tbl(['Группа','A','B','C'],ks.map(k=>[k,G[k].A,G[k].B,G[k].C]))+'<p class="mut">Сначала умножьте каждую матрицу на её коэффициент, затем сложите/вычтите поэлементно.</p></div>',
+()=>'<div class="card"><h2>Задание 2 · 10–12 мин</h2><p>M — матрица 2×3, N — матрица 3×2. Найдите <b>M·N</b> и <b>N·M</b>. Обратите внимание на размеры результатов!</p>'+tbl(['Группа','M (2×3)','N (3×2)'],ks.map(k=>[k,G[k].M,G[k].N]))+'<p class="mut">M·N — матрица 2×2, N·M — матрица 3×3. Это разные матрицы: их даже нельзя сравнивать на равенство.</p></div>',
+()=>'<div class="card"><h2>Задание 3 · 8–10 мин</h2><p>Найдите <b>A + cE</b>, затем <b>(A + cE)·x</b>. Сверьте с <b>Ax + c·x</b>. (A — из задания 1.)</p>'+tbl(['Группа','A','c','x'],ks.map(k=>[k,G[k].A,G[k].c,G[k].x]))+'</div>',
+()=>'<div class="card"><h2>Задание 4 · 7 мин</h2><p>Придумайте <b>две разные</b> матрицы 2×2 (не нулевые, не единичные) с <b>AB = BA</b>. Покажите вычисление.</p><p class="mut">Докладчик: почему вам не пришлось подбирать особые числа?</p></div>',
+()=>'<div class="card"><h2>Разбор у доски · 5 мин</h2><p>Два докладчика показывают решение. Частые ошибки:</p><ul><li>перепутали порядок действий в 2A − 3B + C;</li><li>перемножили M и N поэлементно вместо «строка на столбец»;</li><li>забыли, что M·N и N·M — матрицы разного размера;</li><li>в задании 3 прибавили c ко всем элементам, а не к диагонали.</li></ul></div>',
+()=>'<div class="card"><h2>Ключ преподавателя</h2><button id="tg" class="'+(show?'on':'')+'">'+(show?'Скрыть ответы':'Показать ответы')+'</button>'+(show?tbl(['Гр.','2A−3B+C','M·N (2×2)','N·M (3×3)'],ks.map(k=>[k,'<span class="ans">'+G[k].T1+'</span>','<span class="ans">'+G[k].MN+'</span>','<span class="ans">'+G[k].NM+'</span>']))+tbl(['Гр.','A+cE','(A+cE)·x'],ks.map(k=>[k,'<span class="ans">'+G[k].AcE+'</span>','<span class="ans">'+G[k].Ax+'</span>'])):'<p class="mut">Ответы скрыты. Для задания 4 верны: B = A, kA, A + cE, диагональные пары, B = A².</p>')+'</div>'];
+const names=['Старт','Зад. 1','Зад. 2','Зад. 3','Зад. 4','Разбор','Ключ'];
+let cur=0;
+function draw(){document.getElementById('nav').innerHTML=names.map((n,i)=>'<button class="'+(i==cur?'on':'')+'" data-i="'+i+'">'+n+'</button>').join('');
+document.getElementById('view').innerHTML=V[cur]();
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{cur=+b.dataset.i;draw()});
+const t=document.getElementById('tg');if(t)t.onclick=()=>{show=!show;draw()}}
+let left=35*60,iv=null;
+function shw(){document.getElementById('time').textContent=String(Math.floor(left/60)).padStart(2,'0')+':'+String(left%60).padStart(2,'0')}
+document.getElementById('st').onclick=e=>{if(iv){clearInterval(iv);iv=null;e.target.textContent='Старт'}else{iv=setInterval(()=>{left=Math.max(0,left-1);shw();if(!left){clearInterval(iv);iv=null}},1000);e.target.textContent='Пауза'}};
+document.getElementById('rs').onclick=()=>{left=35*60;shw()};
+document.getElementById('pl').onclick=()=>{left+=300;shw()};
+draw();
+</script></main></body></html>
