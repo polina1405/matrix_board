@@ -55,10 +55,10 @@ function draw(){document.getElementById('nav').innerHTML=names.map((n,i)=>'<butt
 document.getElementById('view').innerHTML=V[cur]();
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{cur=+b.dataset.i;draw()});
 const t=document.getElementById('tg');if(t)t.onclick=()=>{show=!show;draw()}}
-let left=35*60,iv=null;
+let left=45*60,iv=null;
 function shw(){document.getElementById('time').textContent=String(Math.floor(left/60)).padStart(2,'0')+':'+String(left%60).padStart(2,'0')}
 document.getElementById('st').onclick=e=>{if(iv){clearInterval(iv);iv=null;e.target.textContent='Старт'}else{iv=setInterval(()=>{left=Math.max(0,left-1);shw();if(!left){clearInterval(iv);iv=null}},1000);e.target.textContent='Пауза'}};
-document.getElementById('rs').onclick=()=>{left=35*60;shw()};
+document.getElementById('rs').onclick=()=>{left=45*60;shw()};
 document.getElementById('pl').onclick=()=>{left+=300;shw()};
 draw();
 </script></main></body></html>
